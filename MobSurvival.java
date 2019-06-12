@@ -1,7 +1,6 @@
 //Armand Sarkezians
 // May 18th 2019
-// Zombie Survival Game
-//This is such trash
+// Mob Survival game
 
 package ISU;
 
@@ -12,12 +11,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.*;
 
 public class MobSurvival extends JPanel implements MouseListener, KeyListener{
-    private int screen = 1;
-    private int x = 500;
-    private int y = 300;
-    private int round = 1;
+    private int screen = 1; // which screen is being shown, 1 for main, 2 for information, 3 for game
+    private int x = 500; // x position of player
+    private int y = 100; // y position of player
+    private int round = 1; // round number
 
-    private MobSurvival (){
+    private MobSurvival (){ // constructor
         setPreferredSize(new Dimension (1000, 600));
         setFocusable(true);
         addMouseListener(this);
@@ -94,8 +93,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     }
 
     private void startMain(){
-        DrawMain thread = new DrawMain();
-        Thread t = new Thread (thread);
+        Thread t = new Thread (new DrawMain());
         t.start();
     }
 
@@ -104,7 +102,6 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
         Thread t = new Thread(mt);
         t.start();
     }
-
 
     private void startShoot(){
         Shooting mt = new Shooting();
@@ -115,23 +112,24 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     public void keyPressed (KeyEvent e){
         int m = e.getKeyCode();
         if ((m == 'W' || m == KeyEvent.VK_UP) && y >= 0){
-            y-=3;
+            y-=4;
         }else if ((m == 'S' || m == KeyEvent.VK_DOWN) && y <= 550){
-            y+=3;
+            y+=4;
         }else if ((m == 'D' || m == KeyEvent.VK_RIGHT) && x <= 950){
-            x+=3;
+            x+=4;
         }else if ((m == 'A' || m == KeyEvent.VK_LEFT) && x >= 0){
-            x-=3;
+            x-=4;
         }
     }
-
 
 
     public class SpawningMobs implements Runnable{
         public void run(){
             while (true) {
                 LinkedList <Mob> listOfMobs = new LinkedList <> (); // Linked List of mobs, size is 1 for round 1, 2 for round 2, 3 for round 3, etc.
-                for (int numOfMobs = 0; numOfMobs < round; numOfMobs++){ // Fins out how many mobs need to be alive for each round
+
+                int numOfMobsRandom = (int)(Math.random() * (round - 1) + 1);
+                for (int numOfMobs = 0; numOfMobs < numOfMobsRandom; numOfMobs++){ // Fins out how many mobs need to be alive for each round
                     int random = (int)(Math.random() * (4 - 1) + 1);
                     if (random == 1){
                         listOfMobs.add (new Zombie ());
@@ -142,26 +140,49 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
                     }else if (random == 4){
                           listOfMobs.add (new Shark ());
                     }
-                    if ((round % 5 == 0) && (round % 10 != 0)){ // for miniboss (only every 5 rounds)
+                    if ((round % 5 == 0) && (round % 10 != 0)){ // for mini boss (only every 5 rounds)
                         listOfMobs.add (new MiniBoss ());
-                    }else if (round %  10 == 0){ // for finalboss (every 1 rounds)
+                    }else if (round %  10 == 0){ // for final boss (every 1 rounds)
                         listOfMobs.add (new FinalBoss ());
                     }
                 }
+
                 Graphics g = getGraphics();
                 g.setColor(Color.WHITE);
 
 
 
-                for (int location = 1000; location >= 0; location--){
-                    for (int spawnAllMobs = 0; spawnAllMobs < listOfMobs.size(); spawnAllMobs++){
-                        g.drawImage (listOfMobs.get(spawnAllMobs).getImage(), location, spawnAllMobs * 50, null);
-                        g.fillRect (location + 50, spawnAllMobs * 50, 50, 50);
-                        delay (1);
+//                long startTime = System.currentTimeMillis();
+//                for (int location = 1000; location >= 0; location--){
+//                    for (int spawnAllMobs = 0; spawnAllMobs < listOfMobs.size();){
+//                        g.drawImage (listOfMobs.get(spawnAllMobs).getImage(), location, spawnAllMobs * 50, null);
+//                        g.fillRect (location + 50, spawnAllMobs * 50, 50, 50);
+//
+//                        if ((System.currentTimeMillis() - startTime >= 500) && (spawnAllMobs < listOfMobs.size())){
+//                            startTime = System.currentTimeMillis();
+//                            spawnAllMobs++;
+//                        }
+//                        delay (1);
+//                    }
+//                }
+//                delay (2000);
+//                round++;
+
+                long startTime = System.currentTimeMillis();
+                int numOfMobsOnField = 0;
+                for (int pos = 1000; pos >= 0; pos--){
+                    if ((numOfMobsOnField < listOfMobs.size()) && (System.currentTimeMillis() - startTime >= 500)){
+                        g.drawImage (listOfMobs.get(numOfMobsOnField).getImage(), pos, numOfMobsOnField * 50, null);
+                        g.fillRect (pos + 50, numOfMobsOnField * 50, 50, 50);
+                        numOfMobsOnField++;
+                        startTime = System.currentTimeMillis();
                     }
+                    delay (1);
                 }
-                delay (1000);
-                round++;
+
+
+
+
 
 //
 //                for (int xMob = 1000; xMob >= 0; xMob--) {
@@ -215,6 +236,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
             }
         }
     }
+
 
     private void clear (){
         Graphics g = getGraphics();

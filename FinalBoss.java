@@ -5,16 +5,22 @@ import java.awt.*;
 public class FinalBoss extends Mob{
     private int health;
     private static Image mobImage;
+    private int location;
 
-    private int getHealth() {
-        return health; }
+    protected int getHealth() {
+        return health;}
 
     protected Image getImage() {
-        return mobImage; }
+        return mobImage;}
 
-    protected FinalBoss(){
-        health = 1000;
-        mobImage = Toolkit.getDefaultToolkit().getImage("FinalBoss.png");} // same zombie image for each zombie
+    protected int decreaseLocation(){
+        return location - 1;
+    }
 
+    protected FinalBoss() {
+        health = 100;
+        mobImage = Toolkit.getDefaultToolkit().getImage("FinalBoss.png"); // same zombie image for each zombie
+        location = 1000;
+    }
 }
 

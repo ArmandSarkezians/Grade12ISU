@@ -5,17 +5,23 @@ import java.awt.*;
 class Shark extends Mob{
     private int health;
     private static Image mobImage;
+    private int location;
 
-    private int getHealth() {
-        return health; }
+    protected int getHealth() {
+        return health;}
 
     protected Image getImage() {
-        return mobImage; }
+        return mobImage;}
 
-    protected Shark(){
+    protected int decreaseLocation(){
+        return location - 1;
+    }
+
+    protected Shark() {
         health = 100;
-        mobImage = Toolkit.getDefaultToolkit().getImage("Shark.png");} // same zombie image for each zombie
-
+        mobImage = Toolkit.getDefaultToolkit().getImage("Shark.png"); // same zombie image for each zombie
+        location = 1000;
+    }
 }
 
 
