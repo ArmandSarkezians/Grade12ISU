@@ -12,9 +12,12 @@ import java.util.*;
 
 public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     private int screen = 1; // which screen is being shown, 1 for main, 2 for information, 3 for game
-    private int x = 500; // x position of player
-    private int y = 100; // y position of player
+    private int x = 100; // x position of player
+    private int y = 300; // y position of player
     private int round = 1; // round number
+    private  LinkedList <Mob> listOfMobs = new LinkedList <> (); // Linked List of mobs, size is 1 for round 1, 2 for round 2, 3 for round 3, etc.
+    private int health = 25;
+
 
     private MobSurvival (){ // constructor
         setPreferredSize(new Dimension (1000, 600));
@@ -24,8 +27,16 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     }
 
     public void paint(Graphics g) {
-        Image menu = Toolkit.getDefaultToolkit ().getImage ("main.png"); // main image
-        g.drawImage (menu, 0, 0, this);
+        if (screen == 1) {
+            Image menu = Toolkit.getDefaultToolkit().getImage("main.png"); // main image
+            g.drawImage(menu, 0, 0, this);
+        }else if (screen == 2){ // I cant create a new method to draw this? It doesnt work for some reason
+            g.drawImage (Toolkit.getDefaultToolkit().getImage("Information.png"), 0, 0,  this);
+            g.drawImage (Toolkit.getDefaultToolkit().getImage("Back.png"), 900, 540, this);
+        }else if (screen == 4){
+            g.drawImage (Toolkit.getDefaultToolkit().getImage("sara.jpg"), 0, 0, 282, 502,  this);
+            g.drawString ("There's no way to get out of this page u gotta restart the program", 0, 580);
+        }
     }
 
     //Must have this for Mouse Listener to work
@@ -49,6 +60,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     public void mouseClicked(MouseEvent e) {
         int xPos = e.getX();
         int yPos = e.getY();
+        System.out.println(xPos + ":" + yPos);
         if (screen == 1) {
             if (xPos >= 47 && xPos <= 508 && yPos >= 283 && yPos <= 556){ // Play Button
                 screen = 3;
@@ -56,8 +68,11 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
                 startMain();
                 startMobs();
             }else if (xPos >= 509 && xPos <= 949 && yPos >= 283 && yPos <= 556){ // Information Button
-                informationDraw();
                 screen = 2;
+                repaint();
+            }else if(xPos >= 857 && xPos <= 959 && yPos >= 67 && yPos <= 80){ // sara button
+                screen = 4;
+                repaint();
             }
 
         }else if (screen == 2){ // information screen
@@ -66,30 +81,11 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
                 repaint();
             }
 
-
         }else if (screen == 3){
             startShoot();
+        }else if (screen == 4){
+            repaint();
         }
-
-
-
-
-
-
-//        if (screen == 1){
-//            screen = 2;
-//            clear();
-//            startMain();
-//            startMobs();
-//        }else if (screen == 2){
-//            startShoot();
-//        }
-    }
-
-    private void informationDraw(){
-        Graphics g = getGraphics();
-        g.drawImage (Toolkit.getDefaultToolkit().getImage("Information.png"), 0, 0, this);
-        g.drawImage (Toolkit.getDefaultToolkit().getImage("Back.png"), 900, 540, this);
     }
 
     private void startMain(){
@@ -98,14 +94,12 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     }
 
     private void startMobs(){
-        SpawningMobs mt = new SpawningMobs();
-        Thread t = new Thread(mt);
+        Thread t = new Thread(new SpawningMobs());
         t.start();
     }
 
     private void startShoot(){
-        Shooting mt = new Shooting();
-        Thread t = new Thread(mt);
+        Thread t = new Thread(new Shooting());
         t.start();
     }
 
@@ -113,7 +107,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
         int m = e.getKeyCode();
         if ((m == 'W' || m == KeyEvent.VK_UP) && y >= 0){
             y-=4;
-        }else if ((m == 'S' || m == KeyEvent.VK_DOWN) && y <= 550){
+        }else if ((m == 'S' || m == KeyEvent.VK_DOWN) && y <= 530){
             y+=4;
         }else if ((m == 'D' || m == KeyEvent.VK_RIGHT) && x <= 950){
             x+=4;
@@ -125,79 +119,102 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
 
     public class SpawningMobs implements Runnable{
         public void run(){
-            while (true) {
-                LinkedList <Mob> listOfMobs = new LinkedList <> (); // Linked List of mobs, size is 1 for round 1, 2 for round 2, 3 for round 3, etc.
-
-                int numOfMobsRandom = (int)(Math.random() * (round - 1) + 1);
+            while (true){
+                Graphics g = getGraphics();
+                g.drawString ("Health: " + health + "\t Round: " + round, 10, 600);
+                int numOfMobsRandom;
+                if ((round - 2) <= 1){
+                    numOfMobsRandom = (int)(Math.random() * (round - 1) + 1); // between rounds 1 and 3 theres a random chance to get 1, 2, or 3 mobs (meaning round 3 can have only 1 mob)
+                }else{
+                    numOfMobsRandom = (int)(Math.random() * (round - (round - 2)) + (round - 2)); // As an example, if the round is 20, you can get 20 mobs, 19 mobs or 18 mobs, no less (as that would be too easy)
+                }
                 for (int numOfMobs = 0; numOfMobs < numOfMobsRandom; numOfMobs++){ // Fins out how many mobs need to be alive for each round
-                    int random = (int)(Math.random() * (4 - 1) + 1);
+                    int random = (int)(Math.random() * (5 - 1) + 1);
                     if (random == 1){
                         listOfMobs.add (new Zombie ());
                     }else if (random == 2){
-                         listOfMobs.add (new Skeleton ());
+                        listOfMobs.add (new Skeleton ());
                     }else if (random == 3){
-                         listOfMobs.add (new Mummy ());
+                        listOfMobs.add (new Mummy ());
                     }else if (random == 4){
-                          listOfMobs.add (new Shark ());
-                    }
-                    if ((round % 5 == 0) && (round % 10 != 0)){ // for mini boss (only every 5 rounds)
-                        listOfMobs.add (new MiniBoss ());
-                    }else if (round %  10 == 0){ // for final boss (every 1 rounds)
-                        listOfMobs.add (new FinalBoss ());
+                        listOfMobs.add (new Shark ());
                     }
                 }
 
-                Graphics g = getGraphics();
+                if ((round % 5 == 0) && (round % 10 != 0)){ // for mini boss (only every 5 rounds)
+                    listOfMobs.add (new MiniBoss ());
+                }else if (round %  10 == 0){ // for final boss (every 1 rounds)
+                    listOfMobs.add (new FinalBoss ());
+                }
+
+
                 g.setColor(Color.WHITE);
 
 
-
-//                long startTime = System.currentTimeMillis();
-//                for (int location = 1000; location >= 0; location--){
-//                    for (int spawnAllMobs = 0; spawnAllMobs < listOfMobs.size();){
-//                        g.drawImage (listOfMobs.get(spawnAllMobs).getImage(), location, spawnAllMobs * 50, null);
-//                        g.fillRect (location + 50, spawnAllMobs * 50, 50, 50);
-//
-//                        if ((System.currentTimeMillis() - startTime >= 500) && (spawnAllMobs < listOfMobs.size())){
-//                            startTime = System.currentTimeMillis();
-//                            spawnAllMobs++;
-//                        }
-//                        delay (1);
-//                    }
-//                }
-//                delay (2000);
-//                round++;
-
-                long startTime = System.currentTimeMillis();
-                int numOfMobsOnField = 0;
-                for (int pos = 1000; pos >= 0; pos--){
-                    if ((numOfMobsOnField < listOfMobs.size()) && (System.currentTimeMillis() - startTime >= 500)){
-                        g.drawImage (listOfMobs.get(numOfMobsOnField).getImage(), pos, numOfMobsOnField * 50, null);
-                        g.fillRect (pos + 50, numOfMobsOnField * 50, 50, 50);
-                        numOfMobsOnField++;
-                        startTime = System.currentTimeMillis();
-                    }
-                    delay (1);
+                int [] randomLocation = new int [listOfMobs.size()];
+                for (int z = 0; z < randomLocation.length; z++){
+                    randomLocation [z] = (int)(Math.random() * ((1000 + round * 50) - 900) + 900);
+                    listOfMobs.get(z).setLocation(randomLocation[z]);
+                    listOfMobs.get(z).setHeightLoc((int)(Math.random() * (500 - 30) + 30));
                 }
 
 
 
+                int largest = 0;
+                for (int z = 0; z < randomLocation.length; z++){
+                    if (randomLocation [z] > largest){
+                        largest = randomLocation[z];
+                    }
+                }
+
+                boolean allDead = false; // LAST MOB IS NOT ERASED FOR SOME REASON
+                for (int z = largest; z >= -50; z--){
+                    for (int a = 0; a < listOfMobs.size(); a++){
+                        if (listOfMobs.get(a).getHealth() > 0) {
+                            g.drawImage(listOfMobs.get(a).getImage(), listOfMobs.get(a).getLocation(), listOfMobs.get(a).getHeightLoc(), null);
+                        }else if (!listOfMobs.get(a).getDead()){
+                            g.setColor(Color.RED);
+                            g.fillRect (listOfMobs.get(a).getLocation(), listOfMobs.get(a).getHeightLoc(), 50, 50 );
+                            listOfMobs.get(a).setDead(true); // only draws a white box around dead mob once
+                        }
+                        if (listOfMobs.get(a).getLocation() < 10 && listOfMobs.get(a).getLocation() >= 0){ // redraw black line
+                            g.setColor (Color.BLACK);
+                            g.fillRect (50 + listOfMobs.get(a).getLocation() , a * 50, 10 - listOfMobs.get(a).getLocation(), a * 50 + 50);
+                            g.setColor (Color.WHITE);
+                        }
+
+                        System.out.println (listOfMobs.get(0).getLocation());
+                        if (listOfMobs.get(a).getLocation() == 60){
+                            health--;
+                            g.setColor (Color.WHITE);
+                            g.fillRect (0, 590, 1000, 10);
+                            g.setColor (Color.BLACK);
+                            g.drawString ("Health: " + health + "\t Round: " + round, 10, 600);
+                        }
 
 
-//
-//                for (int xMob = 1000; xMob >= 0; xMob--) {
-//
-//                    bufferG.drawImage(shark, 0, 0, null);
-//                    bufferG.drawImage(sharkErase, 0, 0, null);
-//                    g.drawImage(buffer, xMob, rand, null);
-//
-//
-//                    if (xMob == 0){
-//                        g.fillRect (xMob, rand, 50, 50);
-//                    }
-//                }
-//
-//                delay(2000);
+                        listOfMobs.get(a).decreaseLocation();
+                    }
+                    delay(10);
+                    allDead = true;
+                    for (int b = 0; b < listOfMobs.size(); b++){ // if all dead skip this round and go to the next round
+                        if (listOfMobs.get(b).getHealth() > 0){
+                            allDead = false;
+                        }
+                    }
+                    if (allDead){
+                        z = -50;
+                    }
+                }
+
+                delay(2000);
+                round++;
+                listOfMobs.clear();
+                g.setColor (Color.WHITE);
+                g.fillRect (0, 590, 1000, 10);
+                g.setColor (Color.BLACK);
+                g.drawString ("Health: " + health + "\t Round: " + round, 10, 600);
+
             }
         }
     }
@@ -215,7 +232,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
 
                 if (x <= 60){ // if main user is near the line it redraws the line
                     g.setColor (Color.BLACK);
-                    g.fillRect (50, 0, 10, 600);
+                    g.fillRect (50, y - 4, 10, 58);
                 }
             }
         }
@@ -229,9 +246,16 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
             bufferShootG.setColor (Color.WHITE);
             bufferShootG.fillRect (0, 0, 10, 5);
             Graphics g = getGraphics();
-            int yPosOrigin = y;
+
+            int yOrigin = y;
             for (int xShoot = x + 50; xShoot <= 1000; xShoot+= 10) {
-                g.drawImage (bufferShoot, xShoot, yPosOrigin + 20, null);
+                g.drawImage (bufferShoot, xShoot, yOrigin + 20, null);
+                for (int z = 0; z < listOfMobs.size(); z++){
+                    if ((xShoot + 10) >= listOfMobs.get(z).getLocation() && y + 20 >= listOfMobs.get(z).getHeightLoc() && y + 25 <= listOfMobs.get(z).getHeightLoc() + 50){
+                        listOfMobs.get(z).setHealth (listOfMobs.get(z).getHealth() - 50);
+                    }
+                }
+
                 delay (1);
             }
         }
@@ -243,7 +267,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
         g.setColor (Color.WHITE);
         g.fillRect (0, 0, 1000, 600);
         g.setColor (Color.BLACK);
-        g.fillRect (50, 0, 10, 600);
+        g.fillRect (50, 0, 10, 590);
     }
 
     private void delay (int millisec){
@@ -254,6 +278,7 @@ public class MobSurvival extends JPanel implements MouseListener, KeyListener{
     public static void main (String [] args){
         JFrame frame = new JFrame ("Zombie Survival");
         MobSurvival myPanel = new MobSurvival();
+        myPanel.setLayout(null);
         frame.add(myPanel);
         frame.pack ();
         frame.setVisible (true);
